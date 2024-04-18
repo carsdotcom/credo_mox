@@ -1,18 +1,22 @@
-defmodule UnverifiedMox.MixProject do
+defmodule CredoMox.MixProject do
   use Mix.Project
 
+  @name "CredoMox"
   @version "0.1.0"
+  @source_url "https://github.com/carsdotcom/credo_mox"
 
   def project do
     [
-      package: package(),
-      description: description(),
-      app: :unverified_mox,
-      version: @version,
-      elixir: "~> 1.14",
-      start_permanent: Mix.env() == :prod,
+      app: :credo_mox,
+      contributors: contributors(),
       deps: deps(),
-      source_url: "https://github.com/carsdotcom/unverified_mox"
+      description: description(),
+      docs: docs(),
+      elixir: "~> 1.14",
+      name: @name,
+      package: package(),
+      source_url: @source_url,
+      version: @version
     ]
   end
 
@@ -25,9 +29,23 @@ defmodule UnverifiedMox.MixProject do
 
   defp package do
     [
-      name: "CredoMox",
+      name: @name,
       licenses: ["Apache-2.0"],
-      links: %{"GitHub" => "https://github.com/carsdotcom/unverified_mox"}
+      links: %{"GitHub" => @source_url}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "CredoMox.Checks.UnverifiedMox",
+      extras: ["README.md"]
+    ]
+  end
+
+  def contributors() do
+    [
+      {"Zack Kayser", "@zkayser"},
+      {"Stephanie Lane", "@stelane"}
     ]
   end
 
