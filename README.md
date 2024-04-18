@@ -1,6 +1,9 @@
-# UnverifiedMox
+# CredoMox
 
-**TODO: Add description**
+Credo Checks for the Mox library.
+
+Provides a Credo check that ensures tests that have imported Mox and use the `expect` function
+are verifying those expectations. See the `CredoMox.UnverifiedMox` module for more details.
 
 ## Installation
 
