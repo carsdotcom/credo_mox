@@ -29,7 +29,7 @@ defmodule CredoMox.MixProject do
 
   defp package do
     [
-      name: @name,
+      name: "credo_mox",
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => @source_url}
     ]
@@ -37,8 +37,9 @@ defmodule CredoMox.MixProject do
 
   defp docs do
     [
-      main: "CredoMox.Checks.UnverifiedMox",
-      extras: ["README.md"]
+      main: "readme",
+      extras: ["README.md"],
+      api_reference: false
     ]
   end
 

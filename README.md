@@ -21,12 +21,12 @@ add the `UnverifiedMox` module to your checks and configure it to only include t
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `unverified_mox` to your list of dependencies in `mix.exs`:
+by adding `credo_mox` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:unverified_mox, "~> 0.1.0"}
+    {:credo_mox, "~> 0.1.0"}
   ]
 end
 ```
