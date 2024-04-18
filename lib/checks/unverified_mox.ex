@@ -8,10 +8,10 @@ defmodule CredoMox.Checks.UnverifiedMox do
   """
 
   @message """
-  Credo found a test file that imports Mox and uses expect/4, but no verifications were found. When you use expect/4, make sure that you are verifying the the mock.
-  To do this, either make sure that you also add:
-  setup :verify_on_exit!
-  to your test file, or alternatively, call verify!/0 or verify!/1 in each test that uses expect/4
+  Credo found a test file that imports Mox and uses expect/4, but no verifications were found, which means the test will never fail if the function isn't called.
+  You can verify expectations in one of two ways. The most common is to add:
+      setup :verify_on_exit!
+  at the top level of your test file. Alternatively, you can explicitly call verify!/0 or verify!/1 in each test that uses expect/4.
   """
 
   @exit_status 32
@@ -22,15 +22,22 @@ defmodule CredoMox.Checks.UnverifiedMox do
     param_defaults: [],
     explanations: [
       check: """
-      :verify_on_exit! for tests that need Mock
+      Ensures that Mox expectations are always verified. Without either setting up
+      `:verify_on_exit!` or manually calling `verify!` after your expectations, calls to
+      `Mox.expect/4` within your test will never fail, so the test will pass regardless
+      of whether your expected function was called.
       """,
       params: []
     ],
     exit_status: @exit_status
 
   @doc """
-  Inspects test files for the use of `Mox.expect/4` where the expectations being made are unverified. If unverified expectations are found, this check will flag the test file as an issue.
-  The offending file will be displayed in the resulting issue when running `mix credo --strict`, and the line number indicated in the issue will point to the first use of `expect` in that file where the expectation has not been verified.
+  Inspects test files for the use of `Mox.expect/4` where the expectations being made are unverified.
+
+  If unverified expectations are found, this check will flag the test file as an issue.
+  The offending file will be displayed in the resulting issue when running `mix credo --strict`,
+  and the line number indicated in the issue will point to the first use of `expect` in that file
+  where the expectation has not been verified.
   """
   @impl Credo.Check
   def run(source_file, params \\ []) do
