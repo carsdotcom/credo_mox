@@ -49,14 +49,28 @@ if Code.ensure_loaded?(Credo.Check) do
         |> Credo.Code.ast()
         |> then(fn {:ok, ast} -> Macro.postwalker(ast) end)
 
+      module_directives =
+        for directive <- walked_directives,
+            match?({:defmodule, _, [{_, _, [_]} | _]}, directive),
+            do: directive
+
+      Enum.reduce(module_directives, [], fn module, issues_per_file ->
+        module
+        |> Macro.postwalker()
+        |> issues_per_module(issue_meta)
+        |> Enum.concat(issues_per_file)
+      end)
+    end
+
+    defp issues_per_module(module_ast, issue_meta) do
       with true <-
-             Enum.any?(walked_directives, fn ast_node ->
+             Enum.any?(module_ast, fn ast_node ->
                match?({:import, _, [{_, _, [:Mox]}]}, ast_node)
              end),
            {:expect, context, _} <-
-             find_unverified_expect(walked_directives),
+             find_unverified_expect(module_ast),
            false <-
-             Enum.any?(walked_directives, &setup_contains_verify_on_exit?/1) do
+             Enum.any?(module_ast, &setup_contains_verify_on_exit?/1) do
         [issue_for("Missing verify_on_exit!", context, issue_meta)]
       else
         _ -> []
