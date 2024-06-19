@@ -207,4 +207,32 @@ defmodule CredoMox.Checks.UnverifiedMoxTest do
       |> assert_issue()
     end
   end
+
+  test "warns about files with multiple modules where one module is missing verify_on_exit" do
+    """
+    defmodule CredoSampleModule1Test do
+      import Mox
+      setup :verify_on_exit!
+      describe "something" do
+        test "the thing" do
+          expect MockModule, :function, fn -> :foo end
+        end
+      end
+    end
+
+    defmodule CredoSampleModule2Test do
+      import Mox
+      describe "something" do
+        test "the thing" do
+          expect MockModule, :function, fn -> :foo end
+          expect MockModule, :function, fn -> :foo end
+          expect MockModule, :function, fn -> :foo end
+        end
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(UnverifiedMox)
+    |> assert_issue(fn issue -> assert issue.trigger == "Missing verify_on_exit!" end)
+  end
 end
