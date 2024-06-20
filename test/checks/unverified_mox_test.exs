@@ -39,6 +39,33 @@ defmodule CredoMox.Checks.UnverifiedMoxTest do
       |> assert_issue(fn issue -> assert issue.trigger == "Missing verify_on_exit!" end)
     end
 
+    test "warns about modules with nested names missing verify_on_exit" do
+      """
+      defmodule MyApp.MyContext.MyModuleTest do
+        import Mox
+
+        test "this one's fine" do
+          assert 1 + 1 == 2
+        end
+
+        describe "more stuff that's fine" do
+          test "math works" do
+            assert 1 + 1 == 2
+          end
+        end
+
+        describe "something" do
+          test "the thing" do
+            expect MockModule, :function, fn -> :foo end
+          end
+        end
+      end
+      """
+      |> to_source_file()
+      |> run_check(UnverifiedMox)
+      |> assert_issue(fn issue -> assert issue.trigger == "Missing verify_on_exit!" end)
+    end
+
     test "does not warn about test files with verify_on_exit! inside of a setup list" do
       """
       defmodule CredoSampleModuleTest do

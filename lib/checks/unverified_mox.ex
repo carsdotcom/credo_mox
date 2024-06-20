@@ -51,7 +51,7 @@ if Code.ensure_loaded?(Credo.Check) do
 
       module_directives =
         for directive <- walked_directives,
-            match?({:defmodule, _, [{_, _, [_]} | _]}, directive),
+            match?({:defmodule, _, [{_, _, [_ | _]} | _]}, directive),
             do: directive
 
       Enum.reduce(module_directives, [], fn module, issues_per_file ->
