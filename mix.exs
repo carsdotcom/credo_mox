@@ -2,7 +2,7 @@ defmodule CredoMox.MixProject do
   use Mix.Project
 
   @name "CredoMox"
-  @version "0.1.0"
+  @version "0.1.2"
   @source_url "https://github.com/carsdotcom/credo_mox"
 
   def project do
