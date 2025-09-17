@@ -1,8 +1,8 @@
 # CredoMox
 
-Credo Checks to ensure correct usage of the Mox library.
+Credo Checks to ensure correct usage of the Mox and Hammox libraries.
 
-Provides a Credo check that ensures tests that have imported Mox and use the `Mox.expect/4` function
+Provides a Credo check that ensures tests that have imported Mox/Hammox and use the `expect/4` function
 are verifying those expectations. See the `CredoMox.Checks.UnverifiedMox` module for more details.
 
 ## Usage
