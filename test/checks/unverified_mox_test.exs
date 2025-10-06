@@ -264,6 +264,24 @@ defmodule CredoMox.Checks.UnverifiedMoxTest do
         |> run_check(UnverifiedMox)
         |> assert_issue()
       end
+
+      test "warns about piping into expect",
+           %{mock_lib: mock_lib} do
+        """
+        defmodule CredoSampleModuleTest do
+          import #{mock_lib}
+          describe "something" do
+            test "the thing", %{foo: bar} do
+              MockModule
+              |> expect(:function, fn -> :foo end)
+            end
+          end
+        end
+        """
+        |> to_source_file()
+        |> run_check(UnverifiedMox)
+        |> assert_issue()
+      end
     end
 
     @tag mock_lib: mock_lib
