@@ -73,7 +73,7 @@ if Code.ensure_loaded?(Credo.Check) do
 
     defp find_unverified_expect(walked_directives) do
       Enum.find_value(walked_directives, fn ast_node ->
-        with test_block when not is_nil(test_block) <- find_test_body(ast_node),
+        with test_block when not is_nil(test_block) <- find_test_or_setup_body(ast_node),
              expect_tuple when not is_nil(expect_tuple) <- find_expect_in_test_block(test_block),
              false <- Enum.any?(test_block, &match?({:verify!, _, _}, &1)) do
           extract_expect_from_node(expect_tuple)
@@ -112,31 +112,33 @@ if Code.ensure_loaded?(Credo.Check) do
 
     defp find_expect_node(_), do: nil
 
-    defp find_test_body(ast_node) do
+    @test_or_setup [:test, :setup]
+
+    defp find_test_or_setup_body(ast_node) do
       case ast_node do
         # multiline test without context
-        {:test, _, [_, [do: {:__block__, _context, test_body}]]} ->
-          test_body
+        {name, _, [_, [do: {:__block__, _context, body}]]} when name in @test_or_setup ->
+          body
 
         # multiline test with context
-        {:test, _, [_, _, [do: {:__block__, _context, test_body}]]} ->
-          test_body
+        {name, _, [_, _, [do: {:__block__, _context, body}]]} when name in @test_or_setup ->
+          body
 
         # singleline test without context - direct expect
-        {:test, _, [_, [do: {:expect, _, _} = test_body]]} ->
-          [test_body]
+        {name, _, [_, [do: {:expect, _, _} = body]]} when name in @test_or_setup ->
+          [body]
 
         # singleline test with context - direct expect
-        {:test, _, [_, _, [do: {:expect, _, _} = test_body]]} ->
-          [test_body]
+        {name, _, [_, _, [do: {:expect, _, _} = body]]} when name in @test_or_setup ->
+          [body]
 
         # singleline test without context - piped expect
-        {:test, _, [_, [do: {:|>, _, [_, {:expect, _, _}]} = test_body]]} ->
-          [test_body]
+        {name, _, [_, [do: {:|>, _, [_, {:expect, _, _}]} = body]]} when name in @test_or_setup ->
+          [body]
 
         # singleline test with context - piped expect
-        {:test, _, [_, _, [do: {:|>, _, [_, {:expect, _, _}]} = test_body]]} ->
-          [test_body]
+        {name, _, [_, _, [do: {:|>, _, [_, {:expect, _, _}]} = body]]} when name in @test_or_setup ->
+          [body]
 
         _ ->
           nil
