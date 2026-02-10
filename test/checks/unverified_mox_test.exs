@@ -264,6 +264,45 @@ defmodule CredoMox.Checks.UnverifiedMoxTest do
         |> run_check(UnverifiedMox)
         |> assert_issue()
       end
+
+      test "warns about piping into expect",
+           %{mock_lib: mock_lib} do
+        """
+        defmodule CredoSampleModuleTest do
+          import #{mock_lib}
+          describe "something" do
+            test "the thing", %{foo: bar} do
+              MockModule
+              |> expect(:function, fn -> :foo end)
+            end
+          end
+        end
+        """
+        |> to_source_file()
+        |> run_check(UnverifiedMox)
+        |> assert_issue()
+      end
+
+      test "warns on expect in setup (#{mock_lib})", %{mock_lib: mock_lib} do
+        """
+        defmodule FooWebTest do
+          use MyApp.ConnCase, async: true
+
+          import #{mock_lib}
+
+          setup %{user: user} do
+            expect(MockCRM, :find_contacts, fn _, _ ->
+              {:ok, []}
+            end)
+
+            :ok
+          end
+        end
+        """
+        |> to_source_file()
+        |> run_check(UnverifiedMox)
+        |> assert_issue()
+      end
     end
 
     @tag mock_lib: mock_lib
