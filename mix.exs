@@ -51,7 +51,7 @@ defmodule CredoMox.MixProject do
   end
 
   defp description do
-    "Credo checks for Mox"
+    "Credo checks for Mox and Hammox"
   end
 
   # Run "mix help deps" to learn about dependencies.

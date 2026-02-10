@@ -1,18 +1,11 @@
 if Code.ensure_loaded?(Credo.Check) do
   defmodule CredoMox.Checks.UnverifiedMox do
     @moduledoc """
-    #{__MODULE__} looks for test files that import Mox and use
+    #{__MODULE__} looks for test files that import Mox/Hammox and use
     the `expect/4` function, but do not enforce any assertions that
     the expectations have been called or not either by running `verify_on_exit`
     from a setup block or calling `verify!/0` or `verify!/1` inline
     in a test block.
-    """
-
-    @message """
-    Credo found a test file that imports Mox and uses expect/4, but no verifications were found, which means the test will never fail if the function isn't called.
-    You can verify expectations in one of two ways. The most common is to add:
-        setup :verify_on_exit!
-    at the top level of your test file. Alternatively, you can explicitly call verify!/0 or verify!/1 in each test that uses expect/4.
     """
 
     @exit_status 32
@@ -23,7 +16,7 @@ if Code.ensure_loaded?(Credo.Check) do
       param_defaults: [],
       explanations: [
         check: """
-        Ensures that Mox expectations are always verified. Without either setting up
+        Ensures that Mox/Hammox expectations are always verified. Without either setting up
         `:verify_on_exit!` or manually calling `verify!` after your expectations, calls to
         `Mox.expect/4` within your test will never fail, so the test will pass regardless
         of whether your expected function was called.
@@ -54,24 +47,25 @@ if Code.ensure_loaded?(Credo.Check) do
             match?({:defmodule, _, [{_, _, [_ | _]} | _]}, directive),
             do: directive
 
-      Enum.reduce(module_directives, [], fn module, issues_per_file ->
-        module
-        |> Macro.postwalker()
-        |> issues_per_module(issue_meta)
-        |> Enum.concat(issues_per_file)
+      Enum.flat_map(module_directives, fn module ->
+        Enum.flat_map([:Mox, :Hammox], fn mock_lib ->
+          module
+          |> Macro.postwalker()
+          |> issues_per_module(issue_meta, mock_lib)
+        end)
       end)
     end
 
-    defp issues_per_module(module_ast, issue_meta) do
+    defp issues_per_module(module_ast, issue_meta, mock_module) do
       with true <-
              Enum.any?(module_ast, fn ast_node ->
-               match?({:import, _, [{_, _, [:Mox]}]}, ast_node)
+               match?({:import, _, [{_, _, [^mock_module]}]}, ast_node)
              end),
            {:expect, context, _} <-
              find_unverified_expect(module_ast),
            false <-
              Enum.any?(module_ast, &setup_contains_verify_on_exit?/1) do
-        [issue_for("Missing verify_on_exit!", context, issue_meta)]
+        [issue_for("Missing verify_on_exit!", context, issue_meta, mock_module)]
       else
         _ -> []
       end
@@ -134,10 +128,15 @@ if Code.ensure_loaded?(Credo.Check) do
 
     defp setup_contains_verify_on_exit?(_), do: false
 
-    defp issue_for(name, context, issues_meta) do
+    defp issue_for(name, context, issues_meta, mock_module) do
       format_issue(
         issues_meta,
-        message: @message,
+        message: """
+        Credo found a test file that imports #{mock_module} and uses expect/4, but no verifications were found, which means the test will never fail if the function isn't called.
+        You can verify expectations in one of two ways. The most common is to add:
+            setup :verify_on_exit!
+        at the top level of your test file. Alternatively, you can explicitly call verify!/{0,1} in each test that uses expect/4.
+        """,
         trigger: name,
         line_no: context[:line]
       )
